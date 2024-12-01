@@ -1,0 +1,13 @@
+README.md
+setup.py
+api/__init__.py
+api/client.py
+api/process.py
+bot/__init__.py
+bot/handlers.py
+bot/main.py
+bot/utils.py
+evraz_project.egg-info/PKG-INFO
+evraz_project.egg-info/SOURCES.txt
+evraz_project.egg-info/dependency_links.txt
+evraz_project.egg-info/top_level.txt

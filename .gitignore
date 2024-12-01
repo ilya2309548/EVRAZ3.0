@@ -1,0 +1,12 @@
+# Файлы среды
+.env
+__pycache__/
+*.py[cod]
+*.pyo
+*.log
+
+# Виртуальное окружение
+venv/
+
+# Docker
+*.dockerignore
