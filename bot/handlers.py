@@ -1,14 +1,13 @@
+from reportlab.pdfgen import canvas
 from bot.utils import process_zip_file
-from api.client import send_to_llm
-
-
-async def handle_start(message):
-    """Обработчик команды /start"""
-    await message.answer("Привет! Отправьте ZIP-архив для анализа.")
+from api.client import get_review
+from aiogram.types import FSInputFile
+from reports.pdf_generator import generate_pdf
+import os
 
 
 async def handle_zip(message, bot):
-    """Обработка ZIP-архивов"""
+    """Обработка ZIP-архивов и генерация ревью."""
     document = message.document
     if not document.file_name.endswith(".zip"):
         await message.answer("Пожалуйста, отправьте ZIP-архив.")
@@ -21,12 +20,23 @@ async def handle_zip(message, bot):
     # Обработка ZIP-архива
     files_content = process_zip_file(file_content)
 
-    # Отправка данных в LLM
-    response = await send_to_llm(files_content)
-    assistant_response = (
-        response.get("choices", [{}])[0]
-        .get("message", {})
-        .get("content", "Нет ответа.")
-    )
+    if not files_content:
+        await message.answer("Не удалось извлечь текстовые данные из архива.")
+        return
 
-    await message.answer(f"Ответ от модели:\n{assistant_response}")
+    review_content = []
+
+    for file_name, content in files_content.items():
+        # Запрос к API
+        review = await get_review(content, rules=[])
+        review_content.append(f"Файл: {file_name}\n{review}\n")
+
+    # Генерация PDF
+    pdf_path = "review.pdf"
+    generate_pdf(review_content, pdf_path)  # Убираем время из каждой строки
+
+    # Отправка PDF пользователю
+    await bot.send_document(message.chat.id, FSInputFile(pdf_path))
+
+    # Удаление временного файла
+    os.remove(pdf_path)
